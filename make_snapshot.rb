@@ -19,7 +19,7 @@ require 'json'
 	bk_device:  @bk_device,
 	bk_folder: @bk_folder, 
 	bk_num: @bk_num,
-	compleate_at: Time.now
+	started_at: Time.now
 }
 
 unless Process.uid == 0
@@ -27,6 +27,7 @@ unless Process.uid == 0
   exit(1)
 end
 
+@log.info("Remounting #{@bk_device} as read write")
 unless system("#{@mount} -o remount,rw #{@bk_device} #{@bk_folder}") 
 	@log.fatal("Could not remount #{@bk_device} #{@bk_folder}.")
 	exit(1)
@@ -89,6 +90,7 @@ system("#{@rsync}")
 
 File.open("./backup_000/backup_log", 'w') { |file| file.write(JSON.pretty_generate(@bk_log_data)) }
 
+@log.info("Remounting #{@bk_device} as read only")
 unless system("#{@mount} -o remount,ro #{@bk_device} #{@bk_folder}") 
 	@log.fatal("Could not remount #{@bk_device} #{@bk_folder}.")
 	exit(1)
