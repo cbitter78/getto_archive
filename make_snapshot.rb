@@ -87,7 +87,7 @@ system("#{@rsync}")
 @log.info("Rsync Done.")
 @bk_log_data['compleate_at'] = Time.now
 
-File.open(yourfile, 'w') { |"./backup_000/backup_log"| file.write(JSON.pretty_generate(@bk_log_data)) }
+File.open("./backup_000/backup_log", 'w') { |file| file.write(JSON.pretty_generate(@bk_log_data)) }
 
 unless system("#{@mount} -o remount,ro #{@bk_device} #{@bk_folder}") 
 	@log.fatal("Could not remount #{@bk_device} #{@bk_folder}.")
