@@ -2,7 +2,7 @@
 
 require 'fileutils'
 require 'logger'
-
+require 'json'
 
 @bk_device = ENV.fetch('BK_DEVICE', '/dev/sdb1')
 @bk_folder = ENV.fetch('BK_FOLDER', '/opt/backup/drive1')
@@ -15,6 +15,12 @@ require 'logger'
 @rsync     = ENV.fetch('CMD_RSYNC', 'rsync -av --bwlimit=3200 --exclude=extra/* root@work:/app/samba/* /opt/backup/drive1/backup_000/')
 @cp        = ENV.fetch('CMD_CP', '/bin/cp')
 @log = Logger.new(STDOUT)
+@bk_log_data = {
+	bk_device:  @bk_device,
+	bk_folder: @bk_folder, 
+	bk_num: @bk_num,
+	compleate_at: Time.now
+}
 
 unless Process.uid == 0
   @log.fatal('Not running as root.  Root is requried.')
@@ -52,7 +58,7 @@ unless bk_folders.empty?
 		bk_folders.shift
 		oldest_folder_num =-1
 	end
-
+	@bk_log_data['oldest_folder_num'] = oldest_folder_num
 	# Move all the backup folders up by one. For exmaple given 9 folders:
 	#  backup_008 -- moving to --> backup_009
 	#  backup_007 -- moving to --> backup_008
@@ -79,9 +85,9 @@ end
 @log.info("Starting Rsync.....")
 system("#{@rsync}")
 @log.info("Rsync Done.")
+@bk_log_data['compleate_at'] = Time.now
 
-FileUtils.touch("./backup_000/#{Time.now.strftime('%Y_%m_%d__%H_%M_%S_%9N.log')}")
-
+File.open(yourfile, 'w') { |"./backup_000/backup_log"| file.write(JSON.pretty_generate(@bk_log_data)) }
 
 unless system("#{@mount} -o remount,ro #{@bk_device} #{@bk_folder}") 
 	@log.fatal("Could not remount #{@bk_device} #{@bk_folder}.")
