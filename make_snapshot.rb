@@ -27,6 +27,7 @@ unless system("#{@mount} -o remount,rw #{@bk_device} #{@bk_folder}")
 end
 
 Dir.chdir(@bk_folder)
+@log.info("Changing directory to #{@bk_folder}")
 
 # Get a list of all the current backup folders. 
 bk_folders = []
@@ -69,18 +70,20 @@ unless bk_folders.empty?
 	end
 end
 
+@log.info("Making hard link copy: backup_000 -> backup_001")
 unless system("#{@cp} -al backup_000 backup_001") 
 	@log.fatal("Could not make a hard link copy of backup_000 to backup_001")
 	exit(3)
 end
 
+@log.info("Starting Rsync.....")
 system("#{@rsync}")
-
+@log.info("Rsync Done.")
 
 FileUtils.touch("./backup_000/#{Time.now.strftime('%Y_%m_%d__%H_%M_%S_%9N.log')}")
 
 
-unless system("#{@mount} -o remount,ro #{@bk_device} #{@bk_folder}") == 0
+unless system("#{@mount} -o remount,ro #{@bk_device} #{@bk_folder}") 
 	@log.fatal("Could not remount #{@bk_device} #{@bk_folder}.")
 	exit(1)
 end
