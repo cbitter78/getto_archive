@@ -88,6 +88,8 @@ system("#{@rsync}")
 @log.info("Rsync Done.")
 @bk_log_data['compleate_at'] = Time.now
 
+
+FileUtils.rm_f("./backup_000/backup_log") rescue nil
 File.open("./backup_000/backup_log", 'w') { |file| file.write(JSON.pretty_generate(@bk_log_data)) }
 
 @log.info("Remounting #{@bk_device} as read only")
